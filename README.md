@@ -2,6 +2,8 @@
 
 ## 1. Import JSON file using pymongo and update the database
 
+Refer to `Resources/NoSQL_setup_starter.ipynb`
+
 * Import the data `Resources/establishments.json` in terminal, creating database `uk_food` and collection `establishments`  
  Type in terminal:  
 
@@ -9,38 +11,49 @@
     mongoimport --type json -d uk_food -c establishments --drop --jsonArray establishments.json
     ```
 
-* Add a new halal restaurant's details in a dictionary to the database  
-  <img src="Images/Add_dict_to_database.png" alt="Add dictionary to database" width="550">
+### Results and analysis
+
+* Add a new halal restaurant's details in a dictionary to the database using `insert_one`  
+  <img src="Images/Add_dict_to_database.png" alt="Add dictionary to database" width="850">
 
 * Find the BusinessTypeID for "Restaurant/Cafe/Canteen" and return only the BusinessTypeID and BusinessType fields  
     `{'BusinessType': 'Restaurant/Cafe/Canteen', 'BusinessTypeID': 1}`
 
-* Update the new restaurant with the correct BusinessTypeID  
-    `{'_id': ObjectId('6603febb9efd75a38842163d'), 'BusinessName': 'Penang Flavours', 'BusinessType': 'Restaurant/Cafe/Canteen', 'BusinessTypeID': 1 ...`
-* Find how many documents have LocalAuthorityName as "Dover", then delete those documents  
-    `Number of documents that have LocalAuthorityName = Dover:  994`
-    `Remaining documents that include Dover:  0`
-* Convert latitude and longitude to decimal datatype, RatingValue to integer datatype  
-
-    ```python
-    {'RatingValue': 4,
-    'geocode': {'latitude': Decimal128('51.086058'),
-                'longitude': Decimal128('1.196408')}}
-    {'RatingValue': 5,
-    'geocode': {'latitude': Decimal128('51.085797'),
-                'longitude': Decimal128('1.194762')}}
-    {'RatingValue': 5,
-    'geocode': {'latitude': Decimal128('51.083812'),
-                'longitude': Decimal128('1.195625')}}
-    {'RatingValue': 5,
-    'geocode': {'latitude': Decimal128('51.0783519967076'),
-                'longitude': Decimal128('1.18590330311705')}}
-    {'RatingValue': 5,
-    'geocode': {'latitude': Decimal128('51.0783519967076'),
-                'longitude': Decimal128('1.18590330311705')}}
-    ```
+* Update the new restaurant with the correct BusinessTypeID using `update_one`  
+    <img src="Images/new_restaurant_updated_businessID.png" alt="Add dictionary to database" width="450">
+* Find how many documents have LocalAuthorityName as "Dover", then delete those documents using `count_documents` and `delete_many`  
+    `Number of documents where LocalAuthorityName = Dover:  994`  
+    `Remaining documents where LocalAuthorityName = Dover:  0`
+* Convert latitude and longitude to decimal datatype, RatingValue to integer datatype using `update_many`, `$toDecimal` and `$toInt`  
+  <img src="Images/check_lat_long_ratings_are_numbers.png" alt="Check coordinates and rating are numbers" width="350">
 
 ## 2. Exploratory Analysis
+
+Refer to `Resources/NoSQL_analysis_starter.ipynb`
+
+* Use `count_documents` to display the number of documents contained in the result.
+* Display the first document in the results using `pprint`.
+* Convert the result to a Pandas DataFrame, print the number of rows in the DataFrame, and display the first 10 rows.
+
+### Results and analysis
+
+1. Which establishments have a hygiene score equal to 20?  
+There were 41 establishments that had a score of 20 - these are places to avoid due to poor hygiene!
+  <img src="Images/Hygiene_20_dataframe.png" alt="Dataframe of establishments with hygiene score of 20" width="550">
+
+2. Which establishments in London have a RatingValue greater than or equal to 4?  
+Using `$regex` and `$gte`, it was found that there are 33 establishments in The London local authority with a rating >= 4. These establishments are rated highly for food hygiene by the Food Authority.  
+  <img src="Images/London_rating_ge4_df.png" alt="Dataframe of London establishments with rating greater than or equal to 4" width="550">
+
+3. What are the top 5 establishments with a RatingValue of 5, sorted by lowest hygiene score, nearest to the new restaurant added, "Penang Flavours"?  
+Of the establishments that had a numerical hygiene score (i.e. score was not equal to None) that were within 0.01 degree of Penang Flavours, the top 5 businesses were:  
+  <img src="Images/Top_5_business_names.png" alt="List of business names and types of the Top 5 restaurants close to Penang Flavours" width="550">  
+All these premises were highly rated for Food Hygiene with a score of 0.
+
+4. How many establishments in each Local Authority area have a hygiene score of 0, sorting the results from highest to lowest?  
+Using `$match`, `$group`, `$sort` and `aggregate`, it was found that the local authority area of Thanet had the highest number of establishments with top food hygiene ratings (hygiene score of 0), while the local authority areas of Sunderland, Reading, North Norfolk, Kensington and Chelsea, Dorset and Broxbourne only had 1 establishment with a food hygiene score of 0.  
+  <img src="Images/Hygiene_0_grouped_df.png" alt="Local Authority areas with establishments with a score of 0 sorted from highest to lowest" width="650">  
+  <img src="Images/Hygiene_0_grouped_df_tail.png" alt="Local Authority areas with establishments with a score of 0 sorted from highest to lowest" width="220">
 
 ## References
 
